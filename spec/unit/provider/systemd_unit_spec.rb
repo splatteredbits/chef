@@ -222,6 +222,10 @@ describe Chef::Provider::SystemdUnit do
 
     it "loads the user unit content if the file exists and user is set" do
       new_resource.user("joe")
+      allow(Chef::Resource::SystemdUnit).to receive(:new)
+        .with(unit_name)
+        .and_return(new_resource)
+      allow(provider).to receive(:indirect?)
       allow(File).to receive(:exist?)
         .with(unit_path_user)
         .and_return(true)
@@ -238,6 +242,7 @@ describe Chef::Provider::SystemdUnit do
 
     it "does not load the user unit if the file does not exist and user is set" do
       new_resource.user("joe")
+      allow(provider).to receive(:indirect?)
       allow(File).to receive(:exist?)
         .with(unit_path_user)
         .and_return(false)
