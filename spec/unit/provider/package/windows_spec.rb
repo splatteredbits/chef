@@ -427,8 +427,8 @@ describe Chef::Provider::Package::Windows, :windows_only do
         allow(provider).to receive(:checksum).and_return("jiie00u3bbs92vsbhvgvklb2lasgh20ah")
       end
 
-      xit "does not raise the checksum mismatch exception" do
-        expect { provider.send(:validate_content!) }.to_not raise_error
+      it "does not raise the checksum mismatch exception" do
+        expect { provider.send(:define_resource_requirements) }.to_not raise_error
       end
     end
   end
@@ -439,15 +439,13 @@ describe Chef::Provider::Package::Windows, :windows_only do
         allow(provider).to receive(:checksum).and_return("kiie30u3bbs92vsbhvgvklb2lasgh20ah")
       end
 
-      xit "raises the checksum mismatch exception" do
-        expect { provider.send(:validate_content!) }.to raise_error(
-          Chef::Exceptions::ChecksumMismatch
-        )
+      it "raises the package install exception" do
+        expect { provider.run_action(:install) }.to raise_error(Chef::Exceptions::Package)
       end
     end
   end
 
-  describe "validate_content!" do
+  describe "validate_checksum!" do
     before(:each) do
       new_resource.checksum("jiie00u3bbs92vsbhvgvklb2lasgh20ah")
     end

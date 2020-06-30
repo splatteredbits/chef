@@ -528,7 +528,6 @@ describe Chef::Mixin::OpenSSLHelper do
 
     context "When given valid parameters to generate a self signed certificate" do
       it "Generates a valid x509 Certificate" do
-        allow(OpenSSL::Config).to receive(:load)
         @x509_certificate = @instance.gen_x509_cert(@rsa_request, @x509_extension, @info_without_issuer, @rsa_key)
         expect(@x509_certificate).to be_kind_of(OpenSSL::X509::Certificate)
         expect(OpenSSL::X509::Certificate.new(@x509_certificate).verify(@rsa_key)).to be_truthy
@@ -537,7 +536,6 @@ describe Chef::Mixin::OpenSSLHelper do
 
     context "When given valid parameters to generate a CA signed certificate" do
       it "Generates a valid x509 Certificate" do
-        allow(OpenSSL::Config).to receive(:load)
         @x509_certificate = @instance.gen_x509_cert(@ec_request, @x509_extension, @info_with_issuer, @ca_key)
         expect(@x509_certificate).to be_kind_of(OpenSSL::X509::Certificate)
         expect(OpenSSL::X509::Certificate.new(@x509_certificate).verify(@ca_key)).to be_truthy
@@ -659,7 +657,6 @@ describe Chef::Mixin::OpenSSLHelper do
 
     context "When given valid parameters to generate a CRL" do
       it "Generates a valid x509 CRL" do
-        allow(OpenSSL::Config).to receive(:load)
         @x509_crl = instance.gen_x509_crl(@ca_key, @info)
         expect(@x509_crl).to be_kind_of(OpenSSL::X509::CRL)
         expect(OpenSSL::X509::CRL.new(@x509_crl).verify(@ca_key)).to be_truthy
@@ -668,7 +665,7 @@ describe Chef::Mixin::OpenSSLHelper do
   end
 
   describe "#renew_x509_crl" do
-    before(:each) do
+    before(:all) do
       # Generating CA
       @instance = Class.new { include Chef::Mixin::OpenSSLHelper }.new
       @ca_key = OpenSSL::PKey::RSA.new(2048)
@@ -690,7 +687,6 @@ describe Chef::Mixin::OpenSSLHelper do
       @ca_cert.sign(@ca_key, OpenSSL::Digest.new("SHA256"))
 
       @info = { "validity" => 8, "issuer" => @ca_cert }
-      allow(OpenSSL::Config).to receive(:load)
       @crl = @instance.gen_x509_crl(@ca_key, @info)
     end
 
@@ -748,7 +744,7 @@ describe Chef::Mixin::OpenSSLHelper do
   end
 
   describe "#revoke_x509_crl" do
-    before(:each) do
+    before(:all) do
       # Generating CA
 
       @instance = Class.new { include Chef::Mixin::OpenSSLHelper }.new
@@ -764,7 +760,7 @@ describe Chef::Mixin::OpenSSLHelper do
       ef = OpenSSL::X509::ExtensionFactory.new
       ef.subject_certificate = @ca_cert
       ef.issuer_certificate = @ca_cert
-      ef.config = OpenSSL::Config.new
+
       @ca_cert.add_extension(ef.create_extension("basicConstraints", "CA:TRUE", true))
       @ca_cert.add_extension(ef.create_extension("keyUsage", "keyCertSign, cRLSign", true))
       @ca_cert.add_extension(ef.create_extension("subjectKeyIdentifier", "hash", false))
@@ -772,7 +768,6 @@ describe Chef::Mixin::OpenSSLHelper do
       @ca_cert.sign(@ca_key, OpenSSL::Digest.new("SHA256"))
 
       @info = { "validity" => 8, "issuer" => @ca_cert }
-      allow(OpenSSL::Config).to receive(:load)
       @crl = @instance.gen_x509_crl(@ca_key, @info)
       @revoke_info = { "serial" => 1, "reason" => 0 }
     end
@@ -837,14 +832,12 @@ describe Chef::Mixin::OpenSSLHelper do
       end
 
       it "Raises a TypeError" do
-        allow(OpenSSL::Config).to receive(:load)
         expect do
           instance.revoke_x509_crl(@revoke_info, @crl, @ca_key, "issuer" => "abc", "validity" => 8)
         end.to raise_error(TypeError)
       end
 
       it "Raises a TypeError" do
-        allow(OpenSSL::Config).to receive(:load)
         expect do
           instance.revoke_x509_crl(@revoke_info, @crl, @ca_key, "issuer" => @ca_cert, "validity" => "abc")
         end.to raise_error(TypeError)
@@ -853,7 +846,6 @@ describe Chef::Mixin::OpenSSLHelper do
 
     context "When given valid parameters to revoke a Serial in a CRL" do
       it "Revoke a Serial in a CRL" do
-        allow(OpenSSL::Config).to receive(:load)
         @crl_with_revoked_serial = instance.revoke_x509_crl(@revoke_info, @crl, @ca_key, @info)
         expect(@crl_with_revoked_serial).to be_kind_of(OpenSSL::X509::CRL)
         expect(OpenSSL::X509::CRL.new(@crl_with_revoked_serial).verify(@ca_key)).to be_truthy

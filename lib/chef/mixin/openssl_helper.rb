@@ -245,7 +245,6 @@ class Chef
       def gen_serial
         ::OpenSSL::BN.generate_prime(160)
       end
-
       # generate a Certificate given a X509 request
       # @param [OpenSSL::X509::Request] request X509 Certificate Request
       # @param [Array] extension Array of X509 Certificate Extension
@@ -282,7 +281,7 @@ class Chef
           ef.issuer_certificate = info["issuer"]
         end
         ef.subject_certificate = cert
-        ef.config = ::OpenSSL::Config.load(::OpenSSL::Config::DEFAULT_CONFIG_FILE)
+        ef.config = check_config_file
 
         cert.extensions = extension
         cert.add_extension ef.create_extension("subjectKeyIdentifier", "hash")
@@ -312,8 +311,7 @@ class Chef
         crl.issuer = info["issuer"].subject
         crl.last_update = Time.now
         crl.next_update = Time.now + 3600 * 24 * info["validity"]
-
-        ef.config = ::OpenSSL::Config.load(::OpenSSL::Config::DEFAULT_CONFIG_FILE)
+        ef.config = check_config_file
         ef.issuer_certificate = info["issuer"]
 
         crl.add_extension ::OpenSSL::X509::Extension.new("crlNumber", ::OpenSSL::ASN1::Integer(1))
@@ -391,7 +389,7 @@ class Chef
         crl.next_update = crl.last_update + 3600 * 24 * info["validity"]
 
         ef = ::OpenSSL::X509::ExtensionFactory.new
-        ef.config = ::OpenSSL::Config.load(::OpenSSL::Config::DEFAULT_CONFIG_FILE)
+        ef.config = check_config_file
         ef.issuer_certificate = info["issuer"]
 
         crl.extensions = [ ::OpenSSL::X509::Extension.new("crlNumber",
@@ -421,6 +419,12 @@ class Chef
         end
 
         resp
+      end
+
+      def check_config_file
+        return unless File.file?(::OpenSSL::Config::DEFAULT_CONFIG_FILE)
+
+        ::OpenSSL::Config.load(::OpenSSL::Config::DEFAULT_CONFIG_FILE)
       end
     end
   end
