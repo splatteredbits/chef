@@ -33,18 +33,6 @@ steps:
         privileged: true
         single-use: true
 
-- label: ":windows: Validate Habitat Builds of Chef Infra"
-  commands:
-    - powershell -File ./scripts/ci/ensure-minimum-viable-hab.ps1
-    - 'Write-Host "--- :hammer_and_wrench: Installing $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64WINDOWS"'
-    - hab pkg install $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64WINDOWS
-    - powershell -File ./habitat/tests/test.ps1" -PackageIdentifier $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64WINDOWS
-  expeditor:
-    executor:
-      windows:
-        privileged: true
-        single-use: true
-
 # Wait for the package testing to succeed before promoting whatever was tested.
 - wait
 
@@ -52,7 +40,6 @@ steps:
   commands:
     - hab pkg promote $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64LINUX current x86_64-linux
     - hab pkg promote $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64LINUXKERNEL2 current x86_64-linux-kernel2
-    - hab pkg promote $EXPEDITOR_PKG_IDENTS_CHEFINFRACLIENTX86_64WINDOWS current x86_64-windows
   expeditor:
     executor:
       docker:
